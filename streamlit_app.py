@@ -48,7 +48,7 @@ def calculate_rtp_and_roi(initial_rtp, withdraw_amounts, roi_rate, support_rate,
 
 # Streamlit Form
 def main():
-    st.title("RTP ve ROI Hesaplama Aracı")
+    st.title("Dezztech DRS Cal.")
     st.write("Bu araç, RTP yatırımı, ROI ve devlet katkısını hesaplar.")
 
     # Kullanıcıdan giriş alın
