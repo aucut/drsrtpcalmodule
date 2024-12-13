@@ -49,9 +49,7 @@ def calculate_rtp_and_roi(initial_rtp, withdraw_amounts, roi_rate, support_rate,
 # Streamlit Form
 def main():
     st.title("Dezztech Return System Reklam Tanıtım Pazarlama Desteği Hesaplama Modülü.")
-    st.write("Bu modül, bir dizi parametreye göre RTP (Return to Principal) yatırım hesaplaması yapan,
-    her ay için ROI (Return on Investment) geliri, destek geliri, geri alınan tutar ve 
-    gelecek ayın RTP miktarını hesaplayarak bir tablo halinde gösteren bir örnektir.")
+    st.write("Bu modül, bir dizi parametreye göre RTP (Return to Principal) yatırım hesaplaması yapar")
 
     # Kullanıcıdan giriş alın
     initial_rtp = st.number_input("İlk Ay RTP Yatırım Miktarı (₺)", min_value=0.0, value=100000.0, step=1000.0)
