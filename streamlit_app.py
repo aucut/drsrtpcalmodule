@@ -2,7 +2,7 @@ import streamlit as st
 
 def calculate_rtp_and_roi(initial_rtp, withdraw_amounts, roi_rate, support_rate, months):
     """
-    RTP, ROI ve Devlet Katkısı Hesaplama fonksiyonu.
+    RTP, ROI ve Devlet Katkısı Hesaplama Fonksiyonu.
 
     Args:
         initial_rtp (float): İlk ay RTP Yatırım Miktarı.
