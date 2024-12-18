@@ -1,6 +1,9 @@
 import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
+from io import BytesIO
+from reportlab.lib.pagesizes import letter
+from reportlab.pdfgen import canvas
 
 def calculate_rtp_and_roi(initial_rtp, withdraw_amounts, roi_rates, support_rate, months, delay_months):
     """
@@ -70,6 +73,29 @@ def calculate_rtp_and_roi(initial_rtp, withdraw_amounts, roi_rates, support_rate
 
     return df
 
+def create_pdf(df, fig):
+    buffer = BytesIO()
+    c = canvas.Canvas(buffer, pagesize=letter)
+    width, height = letter
+
+    # Tabloyu ekle
+    text = c.beginText(40, height - 40)
+    text.setFont("Helvetica", 10)
+    for col in df.columns:
+        text.textLine(f"{col}: {', '.join(map(str, df[col].values))}")
+    c.drawText(text)
+
+    # Grafiği ekle
+    img_buffer = BytesIO()
+    fig.savefig(img_buffer, format='png')
+    img_buffer.seek(0)
+    c.drawImage(img_buffer, 40, height - 300, width=500, preserveAspectRatio=True, mask='auto')
+
+    c.showPage()
+    c.save()
+    buffer.seek(0)
+    return buffer
+
 # Streamlit Form
 def main():
     st.title("RTP ve ROI Hesaplama Aracı")
@@ -100,7 +126,7 @@ def main():
     if st.button("Hesapla"):
         results = calculate_rtp_and_roi(initial_rtp, withdraw_amounts, roi_rates, support_rate, months, delay_months)
         st.subheader("Sonuçlar")
-        st.table(results)  # Sonuçları tablo olarak göster
+        st.dataframe(results)  # Sonuçları tablo olarak göster
 
         # Toplamları hesapla
         total_roi = results["ROI Miktarı (₺)"].sum()
@@ -132,6 +158,16 @@ def main():
         ax[2].set_ylabel("Kar (₺)")
 
         st.pyplot(fig)
+
+        # PDF oluşturma butonu
+        if st.button("PDF Olarak Kaydet"):
+            pdf_buffer = create_pdf(results, fig)
+            st.download_button(
+                label="PDF İndir",
+                data=pdf_buffer,
+                file_name="rapor.pdf",
+                mime="application/pdf"
+            )
 
 if __name__ == "__main__":
     main()
