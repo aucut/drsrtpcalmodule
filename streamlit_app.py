@@ -98,9 +98,7 @@ def create_pdf(df, fig):
 
 # Streamlit Form
 def main():
-    st.title("Dezztech Return System
-Reklam Tanıtım Pazarlama Desteği
-Hesaplama Modülü")
+    st.title("DRS RTP Desteği Hesaplama Modülü")
     st.write("Bu araç, RTP yatırımı, ROI ve devlet katkısını hesaplar.")
 
     # Kullanıcıdan giriş alın
