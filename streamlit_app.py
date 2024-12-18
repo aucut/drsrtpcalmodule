@@ -1,18 +1,20 @@
 import streamlit as st
+import pandas as pd
 
-def calculate_rtp_and_roi(initial_rtp, withdraw_amounts, roi_rate, support_rate, months):
+def calculate_rtp_and_roi(initial_rtp, withdraw_amounts, roi_rate, support_rate, months, delay_months):
     """
-    RTP, ROI ve Devlet Katkısı Hesaplama Fonksiyonu.
+    RTP, ROI ve devlet katkısı hesaplama fonksiyonu.
 
     Args:
-        initial_rtp (float): İlk ay RTP Yatırım Miktarı.
+        initial_rtp (float): İlk ay RTP yatırım miktarı.
         withdraw_amounts (list): Her ay için geri alınacak tutar (₺).
         roi_rate (float): ROI oranı.
-        support_rate (float): Destek Oranı.
+        support_rate (float): Destek oranı.
         months (list): Ay isimleri.
+        delay_months (int): Destek gelirinin eklenmeye başlayacağı ay sayısı.
 
     Returns:
-        dict: Tüm hesaplanan değerleri içeren tablo.
+        pd.DataFrame: Tüm hesaplanan değerleri içeren tablo.
     """
     num_months = len(months)
     roi_values = [0] * num_months       # ROI miktarları
@@ -32,30 +34,33 @@ def calculate_rtp_and_roi(initial_rtp, withdraw_amounts, roi_rate, support_rate,
         support_income[i] = next_rtp_investments[i - 1] * support_rate
 
         # Bir sonraki ay RTP yatırım miktarını belirle
-        if i < 4:
-            # İlk 4 ay devlet katkısı eklenmez
+        if i < delay_months:
+            # Gecikme süresi boyunca devlet katkısı eklenmez
             next_rtp_investments[i] = roi_values[i] - withdraw_amounts[i]
         else:
-            # 5. ay ve sonrasında devlet katkısı eklenir
-            next_rtp_investments[i] = roi_values[i] + support_income[i - 4] - withdraw_amounts[i]
+            # Gecikme süresi sonrasında devlet katkısı eklenir
+            next_rtp_investments[i] = roi_values[i] + support_income[i - delay_months] - withdraw_amounts[i]
 
-    return {
+    data = {
         "Aylar": months,
-        "ROI Miktarı": roi_values,
-        "Destek Geliri": support_income,
-        "Bir Sonraki Ay RTP Yatırım Miktarı": next_rtp_investments,
+        "ROI Miktarı (₺)": roi_values,
+        "Destek Geliri (₺)": support_income,
+        "Bir Sonraki Ay RTP Yatırım Miktarı (₺)": next_rtp_investments,
     }
+
+    return pd.DataFrame(data)
 
 # Streamlit Form
 def main():
-    st.title("Dezztech Return System Reklam Tanıtım Pazarlama Desteği Hesaplama Modülü.")
-    st.write("Bu modül, bir dizi parametreye göre RTP (Reklam Tanıtım Pazarlama) desteği için sürdürülebilir yatırım hesaplaması yapar")
+    st.title("RTP ve ROI Hesaplama Aracı")
+    st.write("Bu araç, RTP yatırımı, ROI ve devlet katkısını hesaplar.")
 
     # Kullanıcıdan giriş alın
     initial_rtp = st.number_input("İlk Ay RTP Yatırım Miktarı (₺)", min_value=0.0, value=100000.0, step=1000.0)
     roi_rate = st.number_input("ROI Oranı", min_value=0.0, value=1.5, step=0.1)
     support_rate = st.number_input("Destek Oranı", min_value=0.0, value=0.6, step=0.1)
     num_months = st.number_input("Kaç Ay İçin Hesaplama Yapılacak?", min_value=1, value=12, step=1)
+    delay_months = st.number_input("Destek Gelirinin Eklenmeye Başlayacağı Ay Sayısı", min_value=1, value=4, step=1)
 
     # Ay isimlerini oluştur
     all_month_names = ["Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"]
@@ -70,7 +75,7 @@ def main():
 
     # Hesaplama ve Sonuç Gösterimi
     if st.button("Hesapla"):
-        results = calculate_rtp_and_roi(initial_rtp, withdraw_amounts, roi_rate, support_rate, months)
+        results = calculate_rtp_and_roi(initial_rtp, withdraw_amounts, roi_rate, support_rate, months, delay_months)
         st.subheader("Sonuçlar")
         st.table(results)  # Sonuçları tablo olarak göster
 
