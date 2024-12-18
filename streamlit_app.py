@@ -160,14 +160,6 @@ def main():
 
         st.pyplot(fig)
 
-        # PDF oluşturma butonu
-        if st.button("PDF Olarak Kaydet"):
-            pdf_buffer = create_pdf(results, fig)
-            st.download_button(
-                label="PDF İndir",
-                data=pdf_buffer,
-                file_name="rapor.pdf",
-                mime="application/pdf"
             )
 
 if __name__ == "__main__":
