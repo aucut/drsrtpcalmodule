@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+import matplotlib.pyplot as plt
 
 def calculate_rtp_and_roi(initial_rtp, withdraw_amounts, roi_rate, support_rate, months, delay_months):
     """
@@ -46,6 +47,7 @@ def calculate_rtp_and_roi(initial_rtp, withdraw_amounts, roi_rate, support_rate,
         "ROI Miktarı (₺)": roi_values,
         "Destek Geliri (₺)": support_income,
         "Bir Sonraki Ay RTP Yatırım Miktarı (₺)": next_rtp_investments,
+        "Toplam Yatırım (₺)": [initial_rtp] + next_rtp_investments[:-1]
     }
 
     return pd.DataFrame(data)
@@ -78,6 +80,35 @@ def main():
         results = calculate_rtp_and_roi(initial_rtp, withdraw_amounts, roi_rate, support_rate, months, delay_months)
         st.subheader("Sonuçlar")
         st.table(results)  # Sonuçları tablo olarak göster
+
+        # Toplamları hesapla
+        total_roi = results["ROI Miktarı (₺)"].sum()
+        total_support = results["Destek Geliri (₺)"].sum()
+        total_investment = results["Bir Sonraki Ay RTP Yatırım Miktarı (₺)"].sum()
+
+        st.write(f"Toplam ROI Miktarı: {total_roi} ₺")
+        st.write(f"Toplam Destek Geliri: {total_support} ₺")
+        st.write(f"Toplam Yatırım Miktarı: {total_investment} ₺")
+
+        # Grafikler oluştur
+        fig, ax = plt.subplots(3, 1, figsize=(10, 15))
+
+        ax[0].plot(results["Aylar"], results["ROI Miktarı (₺)"], marker='o')
+        ax[0].set_title("Aylık ROI Miktarı")
+        ax[0].set_xlabel("Aylar")
+        ax[0].set_ylabel("ROI Miktarı (₺)")
+
+        ax[1].plot(results["Aylar"], results["Destek Geliri (₺)"], marker='o', color='orange')
+        ax[1].set_title("Aylık Destek Geliri")
+        ax[1].set_xlabel("Aylar")
+        ax[1].set_ylabel("Destek Geliri (₺)")
+
+        ax[2].plot(results["Aylar"], results["Bir Sonraki Ay RTP Yatırım Miktarı (₺)"], marker='o', color='green')
+        ax[2].set_title("Bir Sonraki Ay RTP Yatırım Miktarı")
+        ax[2].set_xlabel("Aylar")
+        ax[2].set_ylabel("RTP Yatırım Miktarı (₺)")
+
+        st.pyplot(fig)
 
 if __name__ == "__main__":
     main()
