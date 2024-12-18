@@ -63,7 +63,7 @@ def calculate_rtp_and_roi(initial_rtp, withdraw_amounts, roi_rates, support_rate
     }
 
     df = pd.DataFrame(data)
-    df.loc['Toplam'] = df.sum(numeric_only=True)
+    df.loc['Toplam'] = df.sum(numeric_only=True).fillna('')
     df.at['Toplam', 'Aylar'] = 'Toplam'
     df.at['Toplam', 'Destek Dahil'] = ''
     df.at['Toplam', 'ROI Oranı'] = ''
@@ -100,7 +100,7 @@ def main():
     if st.button("Hesapla"):
         results = calculate_rtp_and_roi(initial_rtp, withdraw_amounts, roi_rates, support_rate, months, delay_months)
         st.subheader("Sonuçlar")
-        st.table(results.style.format("{:,.2f}"))  # Sonuçları tablo olarak göster
+        st.table(results)  # Sonuçları tablo olarak göster
 
         # Toplamları hesapla
         total_roi = results["ROI Miktarı (₺)"].sum()
