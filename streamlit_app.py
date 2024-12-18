@@ -98,7 +98,7 @@ def create_pdf(df, fig):
 
 # Streamlit Form
 def main():
-    st.image("data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2018%2023%22%3E%3C/svg%3E")
+    st.image("data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%20viewBox%3D%220%200%2018%2023%22%3E%3C/svg%3E", width=100)
     st.title("Dezztech Return System RTP Desteği Hesaplama Modülü")
     st.write("Bu araç, RTP yatırımı, ROI ve devlet katkısını hesaplar.")
 
