@@ -21,11 +21,13 @@ def calculate_rtp_and_roi(initial_rtp, withdraw_amounts, roi_rate, support_rate,
     roi_values = [0] * num_months       # ROI miktarları
     support_income = [0] * num_months   # Destek gelirleri
     next_rtp_investments = [0] * num_months  # Bir sonraki ay RTP yatırım miktarları
+    total_investments = [0] * num_months  # Toplam RTP yatırım miktarları
 
     # İlk ayın hesaplamaları
     roi_values[0] = initial_rtp * roi_rate
     support_income[0] = initial_rtp * support_rate
     next_rtp_investments[0] = roi_values[0] - withdraw_amounts[0]
+    total_investments[0] = initial_rtp
 
     for i in range(1, num_months):
         # ROI hesapla (önceki ayın RTP üzerinden)
@@ -42,15 +44,21 @@ def calculate_rtp_and_roi(initial_rtp, withdraw_amounts, roi_rate, support_rate,
             # Gecikme süresi sonrasında devlet katkısı eklenir
             next_rtp_investments[i] = roi_values[i] + support_income[i - delay_months] - withdraw_amounts[i]
 
+        total_investments[i] = next_rtp_investments[i - 1]
+
     data = {
         "Aylar": months,
         "ROI Miktarı (₺)": roi_values,
         "Destek Geliri (₺)": support_income,
         "Bir Sonraki Ay RTP Yatırım Miktarı (₺)": next_rtp_investments,
-        "Toplam Yatırım (₺)": [initial_rtp] + next_rtp_investments[:-1]
+        "Toplam Yatırım (₺)": total_investments
     }
 
-    return pd.DataFrame(data)
+    df = pd.DataFrame(data)
+    df.loc['Toplam'] = df.sum(numeric_only=True)
+    df.at['Toplam', 'Aylar'] = 'Toplam'
+
+    return df
 
 # Streamlit Form
 def main():
@@ -58,9 +66,9 @@ def main():
     st.write("Bu araç, RTP yatırımı, ROI ve devlet katkısını hesaplar.")
 
     # Kullanıcıdan giriş alın
-    initial_rtp = st.number_input("İlk Ay RTP Yatırım Miktarı (₺)", min_value=0.0, value=100000.0, step=1000.0)
-    roi_rate = st.number_input("ROI Oranı", min_value=0.0, value=1.5, step=0.1)
-    support_rate = st.number_input("Destek Oranı", min_value=0.0, value=0.6, step=0.1)
+    initial_rtp = st.number_input("İlk Ay RTP Yatırım Miktarı (₺)", min_value=0.0, value=100000.0, step=1000.0, format="%.2f")
+    roi_rate = st.number_input("ROI Oranı", min_value=0.0, value=1.5, step=0.1, format="%.2f")
+    support_rate = st.number_input("Destek Oranı", min_value=0.0, value=0.6, step=0.1, format="%.2f")
     num_months = st.number_input("Kaç Ay İçin Hesaplama Yapılacak?", min_value=1, value=12, step=1)
     delay_months = st.number_input("Destek Gelirinin Eklenmeye Başlayacağı Ay Sayısı", min_value=1, value=4, step=1)
 
@@ -72,7 +80,7 @@ def main():
     withdraw_amounts = []
     for i in range(num_months):
         withdraw_amounts.append(
-            st.number_input(f"{months[i]} ayında geri alınacak tutar (₺)", min_value=0.0, value=0.0, step=1000.0, key=f"withdraw_{i}")
+            st.number_input(f"{months[i]} ayında geri alınacak tutar (₺)", min_value=0.0, value=0.0, step=1000.0, format="%.2f", key=f"withdraw_{i}")
         )
 
     # Hesaplama ve Sonuç Gösterimi
@@ -86,9 +94,9 @@ def main():
         total_support = results["Destek Geliri (₺)"].sum()
         total_investment = results["Bir Sonraki Ay RTP Yatırım Miktarı (₺)"].sum()
 
-        st.write(f"Toplam ROI Miktarı: {total_roi} ₺")
-        st.write(f"Toplam Destek Geliri: {total_support} ₺")
-        st.write(f"Toplam Yatırım Miktarı: {total_investment} ₺")
+        st.write(f"Toplam ROI Miktarı: {total_roi:,.2f} ₺")
+        st.write(f"Toplam Destek Geliri: {total_support:,.2f} ₺")
+        st.write(f"Toplam Yatırım Miktarı: {total_investment:,.2f} ₺")
 
         # Grafikler oluştur
         fig, ax = plt.subplots(3, 1, figsize=(10, 15))
