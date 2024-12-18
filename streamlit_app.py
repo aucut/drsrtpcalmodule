@@ -22,12 +22,15 @@ def calculate_rtp_and_roi(initial_rtp, withdraw_amounts, roi_rate, support_rate,
     support_income = [0] * num_months   # Destek gelirleri
     next_rtp_investments = [0] * num_months  # Bir sonraki ay RTP yatırım miktarları
     total_investments = [0] * num_months  # Toplam RTP yatırım miktarları
+    support_included = ["Hayır"] * num_months  # Destek dahil mi?
+    profit = [0] * num_months  # Kar miktarı
 
     # İlk ayın hesaplamaları
     roi_values[0] = initial_rtp * roi_rate
     support_income[0] = initial_rtp * support_rate
     next_rtp_investments[0] = roi_values[0] - withdraw_amounts[0]
     total_investments[0] = initial_rtp
+    profit[0] = roi_values[0] + support_income[0] - withdraw_amounts[0]
 
     for i in range(1, num_months):
         # ROI hesapla (önceki ayın RTP üzerinden)
@@ -40,23 +43,30 @@ def calculate_rtp_and_roi(initial_rtp, withdraw_amounts, roi_rate, support_rate,
         if i < delay_months:
             # Gecikme süresi boyunca devlet katkısı eklenmez
             next_rtp_investments[i] = roi_values[i] - withdraw_amounts[i]
+            support_included[i] = "Hayır"
         else:
             # Gecikme süresi sonrasında devlet katkısı eklenir
             next_rtp_investments[i] = roi_values[i] + support_income[i - delay_months] - withdraw_amounts[i]
+            support_included[i] = "Evet"
 
         total_investments[i] = next_rtp_investments[i - 1]
+        profit[i] = roi_values[i] + (support_income[i - delay_months] if i >= delay_months else 0) - withdraw_amounts[i]
 
     data = {
         "Aylar": months,
+        "Aylık RTP Yatırım Miktarı (₺)": total_investments,
+        "ROI Oranı": [roi_rate] * num_months,
         "ROI Miktarı (₺)": roi_values,
         "Destek Geliri (₺)": support_income,
-        "Bir Sonraki Ay RTP Yatırım Miktarı (₺)": next_rtp_investments,
-        "Toplam Yatırım (₺)": total_investments
+        "Destek Dahil": support_included,
+        "Kar (₺)": profit
     }
 
     df = pd.DataFrame(data)
     df.loc['Toplam'] = df.sum(numeric_only=True)
     df.at['Toplam', 'Aylar'] = 'Toplam'
+    df.at['Toplam', 'Destek Dahil'] = ''
+    df.at['Toplam', 'ROI Oranı'] = ''
 
     return df
 
@@ -92,11 +102,13 @@ def main():
         # Toplamları hesapla
         total_roi = results["ROI Miktarı (₺)"].sum()
         total_support = results["Destek Geliri (₺)"].sum()
-        total_investment = results["Bir Sonraki Ay RTP Yatırım Miktarı (₺)"].sum()
+        total_investment = results["Aylık RTP Yatırım Miktarı (₺)"].sum()
+        total_profit = results["Kar (₺)"].sum()
 
         st.write(f"Toplam ROI Miktarı: {total_roi:,.2f} ₺")
         st.write(f"Toplam Destek Geliri: {total_support:,.2f} ₺")
         st.write(f"Toplam Yatırım Miktarı: {total_investment:,.2f} ₺")
+        st.write(f"Toplam Kar: {total_profit:,.2f} ₺")
 
         # Grafikler oluştur
         fig, ax = plt.subplots(3, 1, figsize=(10, 15))
@@ -111,10 +123,10 @@ def main():
         ax[1].set_xlabel("Aylar")
         ax[1].set_ylabel("Destek Geliri (₺)")
 
-        ax[2].plot(results["Aylar"], results["Bir Sonraki Ay RTP Yatırım Miktarı (₺)"], marker='o', color='green')
-        ax[2].set_title("Bir Sonraki Ay RTP Yatırım Miktarı")
+        ax[2].plot(results["Aylar"], results["Kar (₺)"], marker='o', color='green')
+        ax[2].set_title("Aylık Kar")
         ax[2].set_xlabel("Aylar")
-        ax[2].set_ylabel("RTP Yatırım Miktarı (₺)")
+        ax[2].set_ylabel("Kar (₺)")
 
         st.pyplot(fig)
 
